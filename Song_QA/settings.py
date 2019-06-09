@@ -149,6 +149,8 @@ STATIC_URL = '/static/' # 静态文件别名（相对路径） 和 绝对路径,
 STATICFILES_DIRS = [(
     os.path.join(BASE_DIR,'static')
 )]
+# 加入下面的配置
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = '/media/'      # 媒体文件别名(相对路径) 和 绝对路径   配置media图片文件的存放位置
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')           #media根目录。使用python的os模块将项目根目录和图片目录连接起来
