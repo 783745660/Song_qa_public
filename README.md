@@ -162,3 +162,112 @@ urlpatterns = [
 ]
 ```
 运行 python manage.py runserver 打开开发服务器，在浏览器输入开发服务器的地址 http://127.0.0.1:8000/, 可以看到 Django 返回的内容了。
+## 4 项目部署
+使用 Nginx 和 Gunicorn 部署 Django 博客
+### 服务器准备
+#### 1) 购买阿里云服务器，可以选择轻量级应用服务器，并选择Linux操作系统
+#### 2）购买域名并在阿里云操作台完成域名解析服务
+#### 3）注册域名，完成备案申请
+### 搭建服务器
+由于本人在windows上开发该Django项目，而服务器是部署在云端的，我们需要在windows平台上使用远程登录工具 xshell 来操作服务器配置
+#### 1) 使用xshell远程连接服务器
+#### 2) 新建一个用户
+如果是一台全新服务器的话，通常我们是以 root 用户登录的。但在 root 下部署代码不安全，最好是建一个新用户
+```
+增加用户
+root@localhost:~# useradd -m -s /bin/bash username
+
+把新创建的用户加入超级权限组
+root@localhost:~# usermod -a -G sudo username
+
+为用户配置密码
+root@localhost:~# passwd password
+
+切换到创建的新用户
+root@localhost:~# su - username
+```
+#### 3）在服务器上安装必要的软件
+先更新系统软件
+ubuntu 升级软件：
+```
+sudo apt-get update 更新源
+sudo apt-get upgrade 更新已安装的包
+
+```
+接下来就可以安装必要的软件
+```
+username@localhost:~$ sudo apt-get install nginx
+username@localhost:~$ sudo apt-get install git python3 python3-pip
+username@localhost:~$ sudo pip3 install virtualenv
+```
+启动Nginx服务
+Nginx 是用来处理静态文件请求的，包括图片、css、js 等存在服务器某个文件夹下的静态文件，而显示文章的详情信息由django处理。Nginx安装好之后，并且已经把域名和服务器 IP 绑定了。运行下面的命令启动 Nginx 服务：
+```
+ sudo service nginx start
+```
+可在浏览器中输入域名，检测Nginx是否启动成功
+### 代码部署
+#### 1）修改项目配置代码
+为让Nginx处理静态文件，将项目所有的静态文件放入到文件夹static中
+```
+blogproject/settings.py
+
+# 其他配置...
+
+STATIC_URL = '/static/'
+# 加入下面的配置
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')  #STATIC_ROOT 指明了静态文件的收集目录
+```
+关闭debug模式，并配置允许访问的域名列表
+```
+blogproject/settings.py
+
+DEBUG = False
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost ', 域名]
+```
+新建一个项目文件夹project，将项目代码拉到该文件夹下，并安装项目依赖
+```
+ pip install -r requirements.txt
+```
+将项目中的静态文件收集到static文件夹下，以方便Nginx访问
+```
+python manage.py collectstatic
+```
+生产数据库文件
+```
+python manage.py migrate
+```
+#### 2) 配置Nginx
+在服务器的/etc/nginx/sites-available/目录下新建一个配置文件demo_site，写入如下配置
+```
+/etc/nginx/sites-available/demo_site
+
+server {
+    charset utf-8;
+    listen 80;
+    server_name songwen.top;  #域名
+
+    location /static { 
+        alias /home/username/project/song_qa_public/static;   #静态文件目录
+    }
+
+    location / { 
+        proxy_set_header Host $host;                  
+        proxy_pass http://unix:/tmp/songwen.top.socket;
+    }
+}
+```
+然后把这个配置文件放入到启用网站列表中，被启用网站的目录在 /etc/nginx/sites-enabled/，从 sites-available/ 目录下发送了一个配置文件的快捷方式到 sites-enabled/ 目录
+```
+sudo ln -s /etc/nginx/sites-available/demo_site  /etc/nginx/sites-enabled/demo_site
+```
+#### 3) 使用 Gunicorn 来管理进程
+安装 Gunicorn：
+```
+pip install gunicorn
+```
+启用gunicorn
+```
+ gunicorn --bind unix:/tmp/songwen.top.socket  blogproject.wsgi:application
+```
+输入域名，部署成功
