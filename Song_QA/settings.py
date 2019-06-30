@@ -27,7 +27,7 @@ SECRET_KEY = '^#&0+$e@tc)f8$_ih+*tn2tq$tdeb)=62cgl$gjn8^$0#jo)8+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1','localhost','.songwen.top']
+ALLOWED_HOSTS = ['127.0.0.1','localhost',域名]
 
 
 # Application definition
@@ -92,9 +92,9 @@ WSGI_APPLICATION = 'Song_QA.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'django_song_qa',
-        'USER':'root',
-        'PASSWORD':'sww000',
+        'NAME': '数据库名称',
+        'USER':'数据库用户名',
+        'PASSWORD':'用户密码',
         'HOST':'127.0.0.1',
     }
 }
