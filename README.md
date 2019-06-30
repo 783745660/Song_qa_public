@@ -161,4 +161,4 @@ urlpatterns = [
     url(r'', include('blog.urls')),
 ]
 ```
-运行 python manage.py runserver 打开开发服务器，在浏览器输入开发服务器的地址 http://127.0.0.1:8000/，可以看到 Django 返回的内容了。
+运行 python manage.py runserver 打开开发服务器，在浏览器输入开发服务器的地址 http://127.0.0.1:8000/, 可以看到 Django 返回的内容了。
